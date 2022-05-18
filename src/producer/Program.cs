@@ -1,6 +1,6 @@
 ﻿using Confluent.Kafka;
 
-var conf = new ProducerConfig { BootstrapServers = "192.168.77.1:9092" };
+var conf = new ProducerConfig { BootstrapServers = "localhost:9092" };
 
 Action<DeliveryReport<Null, string>> handler = r =>
     Console.WriteLine(!r.Error.IsError

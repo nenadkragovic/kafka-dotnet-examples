@@ -12,23 +12,25 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 			  v.cpus = 4
 		end
 	    env.vm.box = "ubuntu/bionic64"
-	    env.vm.network "private_network", ip: "192.168.77.1"
+	    env.vm.network "private_network", ip: "192.168.88.2"
 
 		env.vm.synced_folder ".", "/home/vagrant/env/"
 
 		env.vm.provision "shell", inline: <<-SHELL
-			echo "Installing docker"
-			sudo apt update
-			sudo apt-get -y install curl apt-transport-https ca-certificates software-properties-common
-			sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-			sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-			sudo apt update
-			sudo apt -y install docker-ce
-			sudo apt -y install docker-compose
-
-			echo "Composing the environment:"
-			sudo mkdir -p /etc/systemd/system/docker.service.d
-			sudo echo '[Service]Environment="HTTP_PROXY=http://8.8.8.8:80/"' >> /etc/systemd/system/docker.service.d/http-proxy.conf
+			sudo apt-get remove docker docker-engine docker.io containerd runc
+			sudo apt-get update
+			sudo apt-get install \
+			    ca-certificates \
+			    curl \
+			    gnupg \
+			    lsb-release -y
+			curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+			echo \
+			"deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+			$(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+			sudo apt-get update
+			sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin -y
+			sudo apt install docker-compose -y
 
 			sudo docker-compose up --build
 
