@@ -1,4 +1,5 @@
 ﻿using Producer;
+using Serilog;
 
 public class Program
 {
@@ -11,5 +12,9 @@ public class Program
             .ConfigureServices(services =>
             {
                 services.AddHostedService<GpsTracker>();
+
+                Log.Logger = new LoggerConfiguration()
+                    .WriteTo.Console()
+                    .CreateLogger();
             });
 }

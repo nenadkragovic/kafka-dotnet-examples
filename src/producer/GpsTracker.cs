@@ -1,5 +1,6 @@
 ﻿using Common;
 using Confluent.Kafka;
+using Newtonsoft.Json;
 using Serilog;
 
 namespace Producer
@@ -7,10 +8,9 @@ namespace Producer
     public class GpsTracker : IHostedService, IDisposable
     {
         private Timer? _timer = null;
-        private Action<DeliveryReport<Null, Position>> _handler;
-        private IProducer<Null, Position> _producer;
+        private Action<DeliveryReport<Null, string>> _handler;
+        private IProducer<Null, string> _producer;
 
-        private ProducerConfig _conf = new ProducerConfig { BootstrapServers = "localhost:9092" };
 
         private double _latitude, _longitude;
         private Random _random = new Random();
@@ -31,7 +31,8 @@ namespace Producer
                         ? $"Delivered message to {r.TopicPartitionOffset}"
                         : $"Delivery Error: {r.Error.Reason}");
 
-            _producer = new ProducerBuilder<Null, Position>(_conf).Build();
+            _producer = new ProducerBuilder<Null, string>(
+                new ProducerConfig { BootstrapServers = "localhost:9092" }).Build();
 
             _timer = new Timer(
                 RecordPosition,
@@ -52,12 +53,24 @@ namespace Producer
 
         private void RecordPosition(object? state)
         {
-            _latitude = _latitude + _random.NextDouble() * 2 - 1;
-            _longitude = _longitude + _random.NextDouble() * 2 - 1;
+            _latitude += (_random.NextDouble() * 2 - 1)/1000;
+            _longitude += (_random.NextDouble() * 2 - 1)/1000;
 
-            _producer.Produce("my-topic", new Message<Null, Position>
+            _producer.Produce("my-topic", new Message<Null, string>
             {
-                Value = new Position(_latitude, _longitude)
+                Value = JsonConvert.SerializeObject(new GpsRecord()
+                {
+                    Registration = "YU-ABC",
+                    Position = new Position()
+                    {
+                        Latitude = _latitude,
+                        Longitude = _longitude,
+                        Altitude = 37000,
+                    },
+                    Timestamp = DateTime.UtcNow,
+                    Speed = 800,
+                    SpeedUnit = "MPH"
+                })
             }, _handler);
         }
     }

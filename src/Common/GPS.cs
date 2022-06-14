@@ -9,16 +9,15 @@ namespace Common
         [Range(-180, 80)]
         public double Longitude { get; set; }
 
-        public Position(double latitude, double longitude)
-        {
-            Latitude = latitude;
-            Longitude = longitude;
-        }
+        public int Altitude { get; set; }
     }
 
     public class GpsRecord
     {
+        public string Registration { get; set; }
         public DateTime Timestamp { get; set; }
-        public Position Position { get; set; } = null!;
+        public Position? Position { get; set; }
+        public float Speed { get; set; }
+        public string SpeedUnit { get; set; } = "KMH";
     }
 }
