@@ -1,4 +1,5 @@
-﻿using Consumer;
+﻿using Common.Repositories;
+using Consumer.InfluxDb;
 using Serilog;
 
 public class Program
@@ -7,11 +8,12 @@ public class Program
     {
         CreateHostBuilder(args).Build().Run();
     }
+
     public static IHostBuilder CreateHostBuilder(string[] args) =>
         Host.CreateDefaultBuilder(args)
             .ConfigureServices(services =>
             {
-                services.AddSingleton<InfluxDBService>();
+                services.AddSingleton<InfluxDBRepository>();
                 services.AddHostedService<TrackerService>();
 
                 Log.Logger = new LoggerConfiguration()

@@ -12,7 +12,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 			  v.cpus = 4
 		end
 	    env.vm.box = "ubuntu/bionic64"
-	    env.vm.network "private_network", ip: "192.168.88.2"
+	    env.vm.network "private_network", ip: "192.168.0.88"
 
 		env.vm.synced_folder ".", "/home/vagrant/env/"
 

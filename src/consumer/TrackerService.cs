@@ -1,18 +1,18 @@
-﻿using System.Text.Json.Serialization;
-using Common;
+﻿using Common;
+using Common.Repositories;
 using Confluent.Kafka;
 using InfluxDB.Client.Api.Domain;
 using InfluxDB.Client.Writes;
 using Newtonsoft.Json;
 using Serilog;
 
-namespace Consumer
+namespace Consumer.InfluxDb
 {
     internal class TrackerService : IHostedService
     {
-        private readonly InfluxDBService _influxDb;
+        private readonly InfluxDBRepository _influxDb;
 
-        public TrackerService(InfluxDBService influxDb)
+        public TrackerService(InfluxDBRepository influxDb)
         {
             _influxDb = influxDb;
         }
@@ -48,6 +48,7 @@ namespace Consumer
                         try
                         {
                             var cr = consumer.Consume(cancellationToken);
+
                             Log.Information($"Consumed message '{cr.Value}' at: '{cr.TopicPartitionOffset}'.");
 
                             var gpsRecord = JsonConvert.DeserializeObject<GpsRecord>(cr.Value);
@@ -90,30 +91,11 @@ namespace Consumer
             return Task.CompletedTask;
         }
 
-        public async Task StopAsync(CancellationToken cancellationToken)
+        public Task StopAsync(CancellationToken cancellationToken)
         {
-            var results = await _influxDb.QueryAsync(async query =>
-            {
-                var flux = "from(bucket:\"gps-route\") |> range(start: 0)";
-                var tables = await query.QueryAsync(flux, "air-serbia");
-                var records = tables.SelectMany(table =>
-                    table.Records.Select(record =>
-                        new GpsRecord()
-                        {
-                            Registration = record.Values["registration"].ToString(),
-                            Position = new Position()
-                            {
-                                Latitude = Double.Parse(record.Values["latitude"].ToString()),
-                                Longitude = Double.Parse(record.Values["longitude"].ToString()),
-                                Altitude = int.Parse(record.Values["altitude"].ToString()),
-                            },
-                            Timestamp = DateTime.Parse(record.GetTime().ToString()),
-                            Speed = 800,
-                            SpeedUnit = "MPH"
-                        }));
+            Log.Information("Influx Db consumer stopped.");
 
-                return records;
-            });
+            return Task.CompletedTask;
         }
     }
 }
