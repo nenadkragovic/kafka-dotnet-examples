@@ -68,7 +68,7 @@ namespace Producer
                         Altitude = 37000,
                     },
                     Timestamp = DateTime.UtcNow,
-                    Speed = 800,
+                    Speed = "800",
                     SpeedUnit = "MPH"
                 })
             }, _handler);

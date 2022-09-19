@@ -15,6 +15,7 @@ namespace Consumer.InfluxDb
         public TrackerService(InfluxDBRepository influxDb)
         {
             _influxDb = influxDb;
+            _influxDb.CreateOrganizationAndBucket("air-serbia", "gps-routes1");
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -34,12 +35,6 @@ namespace Consumer.InfluxDb
             using (var consumer = new ConsumerBuilder<Ignore, string>(conf).Build())
             {
                 consumer.Subscribe("my-topic");
-
-                //CancellationTokenSource cts = new CancellationTokenSource();
-                //Console.CancelKeyPress += (_, e) => {
-                //    e.Cancel = true; // prevent the process from terminating.
-                //    cts.Cancel();
-                //};
 
                 try
                 {
@@ -66,7 +61,7 @@ namespace Consumer.InfluxDb
                                         .Field("speed-unit", gpsRecord.SpeedUnit)
                                         .Timestamp(DateTime.UtcNow, WritePrecision.Ns);
 
-                                    write.WritePoint(point, "gps-route", "air-serbia");
+                                    write.WritePoint(point, "gps-routes1", "air-serbia");
                                 });
                             }
                             else

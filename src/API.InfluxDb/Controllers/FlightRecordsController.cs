@@ -1,7 +1,7 @@
 using Common;
 using Common.Repositories;
 using Microsoft.AspNetCore.Mvc;
-using Serilog;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace API.InfluxDb.Controllers
 {
@@ -18,29 +18,46 @@ namespace API.InfluxDb.Controllers
         }
 
         [HttpGet(Name = "all")]
-        [Produces(typeof(IEnumerable<GpsRecord>))]
-        public async Task<IEnumerable<GpsRecord>> Get()
+        [Produces(typeof(IDictionary<GpsRecord>))]
+        public async Task<IDictionary<DateTime, GpsRecord>> Get([FromQuery] int offset, [FromQuery] int limit)
         {
-            var flux = "from(bucket:\"gps-route\") |> range(start: 0)";
+            IDictionary<DateTime, GpsRecord> records = new Dictionary<DateTime, GpsRecord>();
+
+            var flux = $"from(bucket:\"gps-routes1\") |> range(start: {offset})";
 
             var tables = await _influxDb.GetQueryApi().QueryAsync(flux, "air-serbia");
-            var records = tables.SelectMany(table =>
-                table.Records.Select(record =>
-                    new GpsRecord()
-                    {
-                        Registration = record.Values["registration"].ToString(),
-                        Position = new Position()
+
+            foreach (var table in tables)
+            {
+                foreach (var record in table.Records)
+                {
+                    var registration = record.Values["registration"].ToString();
+                    var timestamp = record.GetTimeInDateTime() ?? DateTime.MinValue;
+                    if (!records.ContainsKey(record.GetTimeInDateTime() ?? DateTime.MinValue))
+                        records[timestamp] = new GpsRecord()
                         {
-                            Latitude = Double.Parse(record.Values["latitude"].ToString()),
-                            Longitude = Double.Parse(record.Values["longitude"].ToString()),
-                            Altitude = int.Parse(record.Values["altitude"].ToString()),
-                        },
-                        Timestamp = DateTime.Parse(record.GetTime().ToString()),
-                        Speed = (float)Double.Parse(record.Values["speed"].ToString()),
-                        SpeedUnit = record.Values["speed-unit"].ToString()
-                    }));
+                            Registration = registration,
+                            Timestamp = timestamp,
+                            Position = new Position()
+                        };
+
+                    FillPropertyData(records[timestamp], record.GetField(), record.GetValue());
+                }
+            }
 
             return records;
+        }
+
+        private void FillPropertyData(GpsRecord record, string field, object value)
+        {
+            switch (field)
+            {
+                case "altitude": record.Position.Altitude = (long)value; break;
+                case "longitude": record.Position.Longitude = (double)value; break;
+                case "latitude": record.Position.Latitude = (double)value; break;
+                case "speed": record.Speed = (string)value.ToString(); break;
+                case "speed-unit": record.SpeedUnit = (string)value; break;
+            }
         }
     }
 }
