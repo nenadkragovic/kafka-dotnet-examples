@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.32407.343
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Producer", "producer\Producer.csproj", "{FE0DA342-F768-4AC0-B3AE-82EAEEF0F9B2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Producer", "Producer\Producer.csproj", "{FE0DA342-F768-4AC0-B3AE-82EAEEF0F9B2}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Consumer.InfluxDb", "consumer\Consumer.InfluxDb.csproj", "{85EADE69-268D-4DE8-A8A2-F86D62940A5E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Consumer", "Consumer\Consumer.csproj", "{85EADE69-268D-4DE8-A8A2-F86D62940A5E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common", "Common\Common.csproj", "{5CBE97E9-9EDA-4794-A857-B6DC19302593}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "API.InfluxDb", "API.InfluxDb\API.InfluxDb.csproj", "{EC83456A-B9A9-474D-B759-6EA885B43A2E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "API.InfluxDb", "API.InfluxDb\API.InfluxDb.csproj", "{EC83456A-B9A9-474D-B759-6EA885B43A2E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -19,11 +19,11 @@ namespace API.InfluxDb.Controllers
 
         [HttpGet(Name = "all")]
         [Produces(typeof(IDictionary<GpsRecord>))]
-        public async Task<IDictionary<DateTime, GpsRecord>> Get([FromQuery] int offset, [FromQuery] int limit)
+        public async Task<IDictionary<DateTime, GpsRecord>> Get([FromQuery] int start, [FromQuery] int end)
         {
             IDictionary<DateTime, GpsRecord> records = new Dictionary<DateTime, GpsRecord>();
 
-            var flux = $"from(bucket:\"gps-routes1\") |> range(start: {offset})";
+            var flux = $"from(bucket:\"gps-routes1\") |> range(start: -1h)";
 
             var tables = await _influxDb.GetQueryApi().QueryAsync(flux, "air-serbia");
 

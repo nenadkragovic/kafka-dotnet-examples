@@ -6,7 +6,7 @@ using InfluxDB.Client.Writes;
 using Newtonsoft.Json;
 using Serilog;
 
-namespace Consumer.InfluxDb
+namespace Consumer
 {
     internal class TrackerService : IHostedService
     {

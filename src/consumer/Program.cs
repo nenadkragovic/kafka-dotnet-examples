@@ -1,5 +1,5 @@
 ﻿using Common.Repositories;
-using Consumer.InfluxDb;
+using Consumer;
 using Serilog;
 
 public class Program
