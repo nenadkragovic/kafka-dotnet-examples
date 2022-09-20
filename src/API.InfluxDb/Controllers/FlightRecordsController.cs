@@ -1,6 +1,7 @@
-using Common;
+using Common.Models;
 using Common.Repositories;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace API.InfluxDb.Controllers
@@ -11,10 +12,12 @@ namespace API.InfluxDb.Controllers
     {
 
         private readonly InfluxDBRepository _influxDb;
+        private readonly InfluxDbConfig _influxDbConfig;
 
-        public FlightRecordsController(InfluxDBRepository influxDb)
+        public FlightRecordsController(InfluxDBRepository influxDb, IOptions<InfluxDbConfig> influxDbConfig)
         {
             _influxDb = influxDb;
+            _influxDbConfig = influxDbConfig.Value;
         }
 
         [HttpGet(Name = "all")]
@@ -25,7 +28,9 @@ namespace API.InfluxDb.Controllers
 
             var flux = $"from(bucket:\"gps-routes1\") |> range(start: -1h)";
 
-            var tables = await _influxDb.GetQueryApi().QueryAsync(flux, "air-serbia");
+            var tables = await _influxDb
+                .GetQueryApi(_influxDbConfig.Url, _influxDbConfig.Token)
+                .QueryAsync(flux, "air-serbia");
 
             foreach (var table in tables)
             {

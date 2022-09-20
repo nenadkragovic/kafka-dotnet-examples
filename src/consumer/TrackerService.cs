@@ -1,8 +1,10 @@
 ﻿using Common;
+using Common.Models;
 using Common.Repositories;
 using Confluent.Kafka;
 using InfluxDB.Client.Api.Domain;
 using InfluxDB.Client.Writes;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Serilog;
 
@@ -11,19 +13,29 @@ namespace Consumer
     internal class TrackerService : IHostedService
     {
         private readonly InfluxDBRepository _influxDb;
+        private readonly InfluxDbConfig _influxDbConfig;
+        private readonly KafkaConfig _kafkaConfig;
 
-        public TrackerService(InfluxDBRepository influxDb)
+        public TrackerService(InfluxDBRepository influxDb,
+                              IOptions<InfluxDbConfig> influxDbConfig,
+                              IOptions<KafkaConfig> kafkaConfig)
         {
+            _influxDbConfig = influxDbConfig.Value;
+            _kafkaConfig = kafkaConfig.Value;
+
             _influxDb = influxDb;
-            _influxDb.CreateOrganizationAndBucket("air-serbia", "gps-routes1");
+            _influxDb.CreateOrganizationAndBucket(_kafkaConfig.Organization,
+                                                  _kafkaConfig.BucketName,
+                                                  _influxDbConfig.Url,
+                                                  _influxDbConfig.Token);
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
             var conf = new ConsumerConfig
             {
-                GroupId = "test-consumer-group",
-                BootstrapServers = "localhost:9092",
+                GroupId = _kafkaConfig.GroupId,
+                BootstrapServers = _kafkaConfig.BootstrapServers,
                 // Note: The AutoOffsetReset property determines the start offset in the event
                 // there are not yet any committed offsets for the consumer group for the
                 // topic/partitions of interest. By default, offsets are committed
@@ -34,7 +46,7 @@ namespace Consumer
 
             using (var consumer = new ConsumerBuilder<Ignore, string>(conf).Build())
             {
-                consumer.Subscribe("my-topic");
+                consumer.Subscribe(_kafkaConfig.TopicName);
 
                 try
                 {
@@ -62,7 +74,7 @@ namespace Consumer
                                         .Timestamp(DateTime.UtcNow, WritePrecision.Ns);
 
                                     write.WritePoint(point, "gps-routes1", "air-serbia");
-                                });
+                                }, url: _influxDbConfig.Url, token: _influxDbConfig.Token);
                             }
                             else
                             {

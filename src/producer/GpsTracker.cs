@@ -1,5 +1,7 @@
 ﻿using Common;
+using Common.Models;
 using Confluent.Kafka;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Serilog;
 
@@ -10,10 +12,14 @@ namespace Producer
         private Timer? _timer = null;
         private Action<DeliveryReport<Null, string>> _handler;
         private IProducer<Null, string> _producer;
-
-
         private double _latitude, _longitude;
         private Random _random = new Random();
+        private readonly KafkaConfig _kafkaConfig;
+
+        public GpsTracker(IOptions<KafkaConfig> kafkaConfig)
+        {
+            _kafkaConfig = kafkaConfig.Value;
+        }
 
         public void Dispose()
         {
@@ -32,7 +38,7 @@ namespace Producer
                         : $"Delivery Error: {r.Error.Reason}");
 
             _producer = new ProducerBuilder<Null, string>(
-                new ProducerConfig { BootstrapServers = "localhost:9092" }).Build();
+                new ProducerConfig { BootstrapServers = _kafkaConfig.BootstrapServers }).Build();
 
             _timer = new Timer(
                 RecordPosition,
@@ -56,7 +62,7 @@ namespace Producer
             _latitude += (_random.NextDouble() * 2 - 1)/1000;
             _longitude += (_random.NextDouble() * 2 - 1)/1000;
 
-            _producer.Produce("my-topic", new Message<Null, string>
+            _producer.Produce(_kafkaConfig.TopicName, new Message<Null, string>
             {
                 Value = JsonConvert.SerializeObject(new GpsRecord()
                 {

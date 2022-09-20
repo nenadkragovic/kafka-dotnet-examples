@@ -6,37 +6,29 @@ namespace Common.Repositories
 {
     public class InfluxDBRepository
     {
-        private readonly string _token;
-        private const string URL = "http://localhost:8086";
-
-        public InfluxDBRepository(IConfiguration configuration)
+        public void Write(Action<WriteApi> action, string url, string token)
         {
-            _token = "VTN-eYiFp6h80O75SZlsEiqGfHgxNIxQWHR60QWOtBlcD5d3y2kf2SPh-gMlZy1dqmtrsiKJh_zrEwOTu3S5ag==";
-        }
-
-        public void Write(Action<WriteApi> action)
-        {
-            using var client = InfluxDBClientFactory.Create(URL, _token);
+            using var client = InfluxDBClientFactory.Create(url, token);
             using var write = client.GetWriteApi();
             action(write);
         }
 
-        public async Task<T> QueryAsync<T>(Func<QueryApi, Task<T>> action)
+        public async Task<T> QueryAsync<T>(Func<QueryApi, Task<T>> action, string url, string token)
         {
-            using var client = InfluxDBClientFactory.Create(URL, _token);
+            using var client = InfluxDBClientFactory.Create(url, token);
             var query = client.GetQueryApi();
             return await action(query);
         }
 
-        public QueryApi GetQueryApi()
+        public QueryApi GetQueryApi(string url, string token)
         {
-            var client = InfluxDBClientFactory.Create(URL, _token);
+            var client = InfluxDBClientFactory.Create(url, token);
             return client.GetQueryApi();
         }
 
-        public async void CreateOrganizationAndBucket(string organization, string bucketName)
+        public async void CreateOrganizationAndBucket(string organization, string bucketName, string url, string token)
         {
-            using var client = InfluxDBClientFactory.Create(URL, _token);
+            using var client = InfluxDBClientFactory.Create(url, token);
 
             Organization org = null;
 
@@ -70,7 +62,7 @@ namespace Common.Repositories
 
             if (bucket == null)
             {
-                await client.GetBucketsApi().CreateBucketAsync(bucketName, retention, org.Id);
+                bucket = await client.GetBucketsApi().CreateBucketAsync(bucketName, retention, org.Id);
 
                 //
                 // Create access token to "iot_bucket"
