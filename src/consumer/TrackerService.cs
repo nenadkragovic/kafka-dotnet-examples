@@ -73,7 +73,7 @@ namespace Consumer
                                         .Field("speed-unit", gpsRecord.SpeedUnit)
                                         .Timestamp(DateTime.UtcNow, WritePrecision.Ns);
 
-                                    write.WritePoint(point, "gps-routes1", "air-serbia");
+                                    write.WritePoint(point, _kafkaConfig.BucketName, _kafkaConfig.Organization);
                                 }, url: _influxDbConfig.Url, token: _influxDbConfig.Token);
                             }
                             else
