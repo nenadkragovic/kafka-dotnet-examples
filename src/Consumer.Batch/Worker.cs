@@ -45,11 +45,6 @@ namespace Consumer.Batch
             {
                 GroupId = _kafkaConfig.GroupId,
                 BootstrapServers = _kafkaConfig.BootstrapServers,
-                // Note: The AutoOffsetReset property determines the start offset in the event
-                // there are not yet any committed offsets for the consumer group for the
-                // topic/partitions of interest. By default, offsets are committed
-                // automatically, so in this example, consumption will only start from the
-                // earliest message in the topic 'my-topic' the first time you run the program.
                 AutoOffsetReset = AutoOffsetReset.Earliest,
             };
 
@@ -90,7 +85,6 @@ namespace Consumer.Batch
                 }
                 catch (OperationCanceledException)
                 {
-                    // Ensure the consumer leaves the group cleanly and final offsets are committed.
                     consumer.Close();
                 }
             }
@@ -119,7 +113,7 @@ namespace Consumer.Batch
                             .Timestamp(DateTime.UtcNow, WritePrecision.Ns));
                     }
 
-                    write.WritePoints(points, "gps-routes1", "air-serbia");
+                    write.WritePoints(points, _kafkaConfig.BucketName, _kafkaConfig.Organization);
 
                     points.Clear();
 
